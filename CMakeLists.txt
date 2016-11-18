@@ -40,4 +40,4 @@ target_link_libraries(influxstat /usr/lib/varnish-plus/libvarnish.so)
 target_link_libraries(influxstat m)
 target_link_libraries(influxstat ${VARNISH_LIBRARIES})
 
-install (FILES influxstat RENAME varnish-influxstat DESTINATION bin)
+install (PROGRAMS influxstat RENAME varnish-influxstat DESTINATION bin)
