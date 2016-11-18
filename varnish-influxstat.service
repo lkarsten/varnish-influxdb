@@ -1,0 +1,18 @@
+[Unit]
+Description=InfluxDB UDP writer for Varnish Cache
+After=varnish.service
+
+[Service]
+Type=simple
+User=varnishlog
+Group=varnish
+ExecStart=/usr/local/bin/varnish-influxstat -i 10 localhost 4444
+ExecReload=/bin/kill -HUP $MAINPID
+PrivateDevices=true
+#PrivateNetwork=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
