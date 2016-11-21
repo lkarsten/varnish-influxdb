@@ -81,7 +81,7 @@ send_message(void)
 static int
 do_influx_cb(void *priv, const struct VSC_point * const pt)
 {
-	char time_stamp[20];
+	char timestamp[20];
 	(void)priv;
 
 	if (pt == NULL)
@@ -91,7 +91,7 @@ do_influx_cb(void *priv, const struct VSC_point * const pt)
 	uint64_t val = *(const volatile uint64_t*)pt->ptr;
 
 	time_t now = time(NULL);
-	(void)strftime(time_stamp, 20, "%Y-%m-%dT%H:%M:%S", localtime(&now));
+	(void)strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S", localtime(&now));
 
 	VSB_clear(msg);
 	if (pt->section->fantom->type[0])
