@@ -61,9 +61,8 @@
 
 /* Global variables are the bestest. */
 int sock = -1;
-char hostname[64];
 
-struct vsb *msg, *tags;
+struct vsb *msg, *msgtags;
 
 static int
 send_message(void)
@@ -102,8 +101,7 @@ do_influx_cb(void *priv, const struct VSC_point * const pt)
 		    pt->desc->name);
 	else
 		WRONG("Unknown field type");
-	VSB_printf(msg, ",hostname=%s", hostname);
-	VSB_printf(msg, ",%s", VSB_data(tags));
+	VSB_printf(msg, " %s", VSB_data(msgtags));
 	VSB_printf(msg, " value=%ju", (uintmax_t)val);
 	VSB_printf(msg, " %ju\n", time(NULL)*NANO);
 	VSB_finish(msg);
@@ -226,6 +224,8 @@ usage(void)
 	    "Filename of a stale VSM instance.");
 	fprintf(stderr, FMT, "-t seconds|<off>",
 	    "Timeout before returning error on initial VSM connection.");
+	fprintf(stderr, FMT, "-P tag1=value,tag2=value",
+	    "Additional tags set on messages. Prepend with '!' to remove defaults.");
 	fprintf(stderr, FMT, "-V", "Display the version number and exit.");
 #undef FMT
 	exit(1);
@@ -235,6 +235,7 @@ int
 main(int argc, char * const *argv)
 {
 	struct VSM_data *vd;
+	char hostname[64];
 	double t_arg = 5.0, t_start = NAN;
 	long interval = 10.0;
 	int f_list = 0;
@@ -243,7 +244,13 @@ main(int argc, char * const *argv)
 	vd = VSM_New();
 	AN(vd);
 
-	while ((c = getopt(argc, argv, VSC_ARGS "1f:i:lVxjt:")) != -1) {
+	msg = VSB_new(NULL, NULL, 2048, 0);
+	msgtags = VSB_new_auto();
+
+	AZ(gethostname(hostname, sizeof(hostname)));
+	VSB_printf(msgtags, "hostname=%s,service=varnish", hostname);
+
+	while ((c = getopt(argc, argv, VSC_ARGS "1f:i:lVxjt:P:")) != -1) {
 		switch (c) {
 		case 'i':
 			interval = atol(optarg);  /* seconds */
@@ -269,6 +276,15 @@ main(int argc, char * const *argv)
 		case 'V':
 			VCS_Message("influxstat");
 			exit(0);
+		case 'P':
+			if (optarg[0] == '!') {
+				optarg++;
+				VSB_clear(msgtags);
+				VSB_printf(msgtags, "%s", optarg);
+			} else {
+				VSB_printf(msgtags, ",%s", optarg);
+			}
+			break;
 		default:
 			if (VSC_Arg(vd, c, optarg) > 0)
 				break;
@@ -279,6 +295,8 @@ main(int argc, char * const *argv)
 
 	if (optind != argc-2)
 		usage();
+
+	VSB_finish(msgtags);
 
 	sock = create_socket(argv[optind], argv[optind+1]);
 	AN(sock);
@@ -300,21 +318,10 @@ main(int argc, char * const *argv)
 		VTIM_sleep(0.5);
 	}
 
-	if (f_list) {
+	if (f_list)
 		list_fields(vd);
-	}
-
-	AZ(gethostname(hostname, sizeof(hostname)));
-
-	msg = VSB_new(NULL, NULL, 2048, 0);
-	// fprintf(stderr, "Attempting to resolve %s:%s\n", argv[optind], argv[optind+1]);
-
-	/* Make a startup argument for the tags. Along with -f it should make
-	 * this nice and configurable. */
-	tags = VSB_new_auto();
-	VSB_printf(tags, "service=varnish");
-	VSB_finish(tags);
 
 	do_influx_udp(vd, interval);
+
 	exit(EXIT_SUCCESS);
 }
