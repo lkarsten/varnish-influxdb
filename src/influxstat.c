@@ -61,7 +61,7 @@
 
 /* Global variables are the bestest. */
 int sock = -1;
-
+int do_debug = 0;
 struct vsb *msg, *msgtags;
 
 static int
@@ -73,7 +73,9 @@ send_message(void)
 			fprintf(stderr, "write error: (%i) %s\n", errno, strerror(errno));
 		}
 	}
-	// fprintf(stderr, "[%i] %s", written, VSB_data(msg));
+
+	if (do_debug)
+		fprintf(stderr, "[%i/%lu] %s", written, VSB_len(msg), VSB_data(msg));
 	return(written);
 }
 
@@ -250,8 +252,11 @@ main(int argc, char * const *argv)
 	AZ(gethostname(hostname, sizeof(hostname)));
 	VSB_printf(msgtags, "hostname=%s,service=varnish", hostname);
 
-	while ((c = getopt(argc, argv, VSC_ARGS "1f:i:lVxjt:P:")) != -1) {
+	while ((c = getopt(argc, argv, VSC_ARGS "di:lVt:P:")) != -1) {
 		switch (c) {
+		case 'd':
+			do_debug = 1;
+			break;
 		case 'i':
 			interval = atol(optarg);  /* seconds */
 			break;
