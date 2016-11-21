@@ -103,7 +103,7 @@ do_influx_cb(void *priv, const struct VSC_point * const pt)
 		    pt->desc->name);
 	else
 		WRONG("Unknown field type");
-	VSB_printf(msg, " %s", VSB_data(msgtags));
+	VSB_printf(msg, ",%s", VSB_data(msgtags));
 	VSB_printf(msg, " value=%ju", (uintmax_t)val);
 	VSB_printf(msg, " %ju\n", time(NULL)*NANO);
 	VSB_finish(msg);
