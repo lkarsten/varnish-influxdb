@@ -209,7 +209,7 @@ usage(void)
 {
 #define FMT "    %-28s # %s\n"
 	fprintf(stderr, "Usage: influxstat "
-	    "[lV] [-f field] [-t seconds|<off>] [-i seconds] "
+	    "[lVd] [-f field] [-t seconds|<off>] [-i seconds] "
 	    VSC_n_USAGE " hostname port\n");
 	fprintf(stderr, FMT, "-f field", "Field inclusion glob");
 	fprintf(stderr, FMT, "",
@@ -225,7 +225,7 @@ usage(void)
 	fprintf(stderr, FMT, "-t seconds|<off>",
 	    "Timeout before returning error on initial VSM connection.");
 	fprintf(stderr, FMT, "-P tag1=value,tag2=value",
-	    "Additional tags set on messages. Prepend with '!' to remove defaults.");
+	    "Additional tags set on messages. Prepend with '=' to remove defaults.");
 	fprintf(stderr, FMT, "-V", "Display the version number and exit.");
 #undef FMT
 	exit(1);
@@ -277,7 +277,7 @@ main(int argc, char * const *argv)
 			VCS_Message("influxstat");
 			exit(0);
 		case 'P':
-			if (optarg[0] == '!') {
+			if (optarg[0] == '=') {
 				optarg++;
 				VSB_clear(msgtags);
 				VSB_printf(msgtags, "%s", optarg);
