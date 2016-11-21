@@ -293,7 +293,6 @@ main(int argc, char * const *argv)
 		default:
 			if (VSC_Arg(vd, c, optarg) > 0)
 				break;
-			fprintf(stderr, "%s\n", VSM_Error(vd));
 			usage();
 		}
 	}
@@ -323,10 +322,15 @@ main(int argc, char * const *argv)
 		VTIM_sleep(0.5);
 	}
 
+	if (!VSM_IsOpen(vd)) {
+		fprintf(stderr, "ERROR: %s\n", VSM_Error(vd));
+		return(EXIT_FAILURE);
+	}
+
 	if (f_list)
 		list_fields(vd);
 
 	do_influx_udp(vd, interval);
 
-	exit(EXIT_SUCCESS);
+	return(EXIT_SUCCESS);
 }
