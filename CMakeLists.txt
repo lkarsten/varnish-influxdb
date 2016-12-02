@@ -35,7 +35,7 @@ include_directories("src")
 add_executable(influxstat src/influxstat.c)
 
 # we need VSB_* from libvarnish, but no pkg-config for it.
-target_link_libraries(influxstat /usr/lib/varnish-plus/libvarnish.so)
+target_link_libraries(influxstat /usr/lib/varnish/libvarnish.so)
 
 target_link_libraries(influxstat m)
 target_link_libraries(influxstat ${VARNISH_LIBRARIES})
